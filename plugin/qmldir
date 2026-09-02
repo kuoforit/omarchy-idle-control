@@ -1,0 +1,2 @@
+module stevenkuo.idle-control
+singleton IdleControlState 1.0 IdleControlState.qml

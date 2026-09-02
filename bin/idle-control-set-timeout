@@ -1,0 +1,32 @@
+#!/bin/bash
+# Usage: idle-control-set-timeout <screensaver|lock> <minutes>
+#
+# Updates ~/.config/omarchy/shell.json's idle.<key> value and restarts the
+# Omarchy shell. The restart is required, not optional: Quickshell's
+# ext-idle-notify-v1 timeout is fixed at the moment the idle-notify object is
+# created, so a bare config edit leaves the old timeout listening forever
+# ("zombie listener") even though `omarchy-shell idle status` reports the
+# new number.
+set -euo pipefail
+
+KEY="${1:-}"
+MINUTES="${2:-}"
+SHELL_JSON="$HOME/.config/omarchy/shell.json"
+
+case "$KEY" in
+  screensaver|lock) ;;
+  *) echo "Usage: idle-control-set-timeout <screensaver|lock> <minutes>" >&2; exit 1 ;;
+esac
+
+if ! [[ $MINUTES =~ ^[0-9]+$ ]] || (( MINUTES < 1 )); then
+  echo "Minutes must be a positive integer" >&2
+  exit 1
+fi
+
+SECONDS_VALUE=$((MINUTES * 60))
+
+tmp=$(mktemp)
+jq --arg key "$KEY" --argjson seconds "$SECONDS_VALUE" '.idle[$key] = $seconds' "$SHELL_JSON" > "$tmp"
+mv "$tmp" "$SHELL_JSON"
+
+omarchy restart shell

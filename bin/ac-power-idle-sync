@@ -1,0 +1,59 @@
+#!/bin/bash
+# Keeps the Omarchy stay-awake flag in sync with AC power connection.
+# Plugged in -> stay awake by default (no screensaver/lock).
+# On battery -> normal idle behavior (screensaver/lock/suspend timers apply).
+# Manual override via the bar icon still works in between; the next
+# plug/unplug transition resets it back to the default for that state.
+
+STATE_FILE="$HOME/.local/state/omarchy/indicators/stay-awake"
+
+# The AC power supply isn't always named ADP1 (varies by machine/kernel), so
+# detect it by type=Mains instead of hardcoding a name.
+ac_online_path() {
+  local supply
+  for supply in /sys/class/power_supply/*/; do
+    [[ -f "${supply}type" ]] || continue
+    if [[ "$(cat "${supply}type" 2>/dev/null)" == "Mains" ]]; then
+      echo "${supply}online"
+      return 0
+    fi
+  done
+  return 1
+}
+
+AC_ONLINE_PATH="$(ac_online_path)"
+if [[ -z $AC_ONLINE_PATH ]]; then
+  echo "ac-power-idle-sync: no AC power supply (type=Mains) found under /sys/class/power_supply/, exiting" >&2
+  exit 1
+fi
+
+read_online() {
+  cat "$AC_ONLINE_PATH" 2>/dev/null
+}
+
+apply_state() {
+  local online="$1"
+  mkdir -p "$(dirname "$STATE_FILE")"
+  if [[ $online == "1" ]]; then
+    touch "$STATE_FILE"
+  else
+    rm -f "$STATE_FILE"
+  fi
+}
+
+apply_state "$(read_online)"
+
+# upower --monitor fires on any device change (e.g. a battery's routine
+# telemetry updates every ~30s), not just AC plug/unplug -- so only re-apply
+# when the AC online value actually changed, otherwise a manual override
+# gets stomped within seconds by an unrelated battery event.
+exec upower --monitor | {
+  last_online="$(read_online)"
+  while read -r _; do
+    online="$(read_online)"
+    if [[ $online != "$last_online" ]]; then
+      last_online="$online"
+      apply_state "$online"
+    fi
+  done
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "stevenkuo.idle-control",
+  "name": "Idle Control",
+  "version": "1.0.0",
+  "author": "stevenkuo",
+  "license": "MIT",
+  "description": "Bar toggle for stay-awake, screensaver, and lock-when-idle, independently switchable.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Idle Control",
+    "description": "Adjust stay-awake, screensaver, and lock-when-idle",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "center"
+  }
+}

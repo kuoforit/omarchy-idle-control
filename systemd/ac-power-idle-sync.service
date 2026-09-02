@@ -1,0 +1,12 @@
+[Unit]
+Description=Sync Omarchy stay-awake state with AC power connection
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/ac-power-idle-sync
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

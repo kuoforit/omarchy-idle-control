@@ -1,0 +1,36 @@
+#!/bin/bash
+# Reports the current state of the three independently-controllable idle
+# behaviors used by the stevenkuo.idle-control bar widget, as JSON.
+
+STAY_AWAKE_FLAG="$HOME/.local/state/omarchy/indicators/stay-awake"
+SCREENSAVER_OFF_FLAG="$HOME/.local/state/omarchy/toggles/screensaver-off"
+LOCK_OFF_FLAG="$HOME/.local/state/omarchy/toggles/lock-off"
+SHELL_JSON="$HOME/.config/omarchy/shell.json"
+
+# The AC power supply isn't always named ADP1 (varies by machine/kernel), so
+# detect it by type=Mains instead of hardcoding a name.
+ac_online_path() {
+  local supply
+  for supply in /sys/class/power_supply/*/; do
+    [[ -f "${supply}type" ]] || continue
+    if [[ "$(cat "${supply}type" 2>/dev/null)" == "Mains" ]]; then
+      echo "${supply}online"
+      return 0
+    fi
+  done
+  return 1
+}
+
+sa=false; so=false; lo=false; ac=false
+[[ -f $STAY_AWAKE_FLAG ]] && sa=true
+[[ -f $SCREENSAVER_OFF_FLAG ]] && so=true
+[[ -f $LOCK_OFF_FLAG ]] && lo=true
+
+AC_ONLINE_PATH="$(ac_online_path)"
+[[ -n $AC_ONLINE_PATH && $(cat "$AC_ONLINE_PATH" 2>/dev/null) == "1" ]] && ac=true
+
+screensaverSeconds=$(jq -r '.idle.screensaver // 600' "$SHELL_JSON" 2>/dev/null || echo 600)
+lockSeconds=$(jq -r '.idle.lock // 1200' "$SHELL_JSON" 2>/dev/null || echo 1200)
+
+printf '{"stayAwake":%s,"screensaverOff":%s,"lockOff":%s,"acOnline":%s,"screensaverSeconds":%s,"lockSeconds":%s}\n' \
+  "$sa" "$so" "$lo" "$ac" "$screensaverSeconds" "$lockSeconds"
