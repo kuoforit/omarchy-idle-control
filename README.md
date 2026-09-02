@@ -19,6 +19,11 @@ independently-controllable flags on top of it, plus a bar icon that's always
 visible (not just on hover) and a panel to flip everything without touching
 a terminal.
 
+The bar icon itself doubles as a status indicator — it turns red when Stay
+Awake is on, so you can tell at a glance without opening the panel:
+
+![Bar icon: idle vs Stay Awake on](screenshots/bar-icon-states.png)
+
 ## What it does
 
 Three flags, each optional and independent:
