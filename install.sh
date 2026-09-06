@@ -1,6 +1,6 @@
 #!/bin/bash
 # Installs the Idle Control bar widget for Omarchy:
-#   - plugin/            -> ~/.config/omarchy/plugins/stevenkuo.idle-control/
+#   - *.qml, manifest.json, qmldir -> ~/.config/omarchy/plugins/stevenkuo.idle-control/
 #   - bin/*               -> ~/.local/bin/
 #   - systemd/*.service   -> ~/.config/systemd/user/ (enabled + started)
 #   - optional patch to the system idle Service.qml, so the Lock Screen
@@ -24,7 +24,7 @@ command -v upower >/dev/null 2>&1 || { echo "upower is required but not installe
 
 echo "==> Installing plugin to $PLUGIN_DIR"
 mkdir -p "$PLUGIN_DIR"
-cp "$SCRIPT_DIR"/plugin/*.qml "$SCRIPT_DIR"/plugin/manifest.json "$SCRIPT_DIR"/plugin/qmldir "$PLUGIN_DIR/"
+cp "$SCRIPT_DIR"/*.qml "$SCRIPT_DIR"/manifest.json "$SCRIPT_DIR"/qmldir "$PLUGIN_DIR/"
 
 echo "==> Installing scripts to $BIN_DIR"
 mkdir -p "$BIN_DIR"
